@@ -109,8 +109,9 @@ class CompatibilityChecker:
 
             max_version = os_data.get_latest_darwin_version()
             min_version = os_data.get_lowest_darwin_version()
-            ocl_patched_max_version = "24.99.99"
+            ocl_patched_max_version = os_data.get_latest_darwin_version(include_beta=False)
             ocl_patched_min_version = "20.0.0"
+            navi_requires_developer_mode = False
 
             if "Intel" in gpu_manufacturer:
                 if device_id.startswith(("0042", "0046")) and self.hardware_report.get("Motherboard").get("Platform") != "Desktop":
@@ -134,7 +135,8 @@ class CompatibilityChecker:
                 if "Navi 2" in gpu_codename:
                     if not "AVX2" in self.hardware_report.get("CPU").get("SIMD Features"):
                         max_version = "21.99.99"
-                        ocl_patched_max_version = max_version
+                        ocl_patched_min_version = "22.0.0"
+                        navi_requires_developer_mode = True
                     else:
                         if gpu_codename in ("Navi 23", "Navi 22"):
                             min_version = "21.2.0"
@@ -146,6 +148,7 @@ class CompatibilityChecker:
                     if not "AVX2" in self.hardware_report.get("CPU").get("SIMD Features"):
                         max_version = "21.99.99"
                         ocl_patched_min_version = "22.0.0"
+                        navi_requires_developer_mode = True
                     min_version = "19.0.0"
                 elif "Vega 20" in gpu_codename:
                     if not "AVX2" in self.hardware_report.get("CPU").get("SIMD Features"):
@@ -184,8 +187,7 @@ class CompatibilityChecker:
             print("{}- {}: {}".format(" "*3, gpu_name, self.show_macos_compatibility(gpu_props.get("Compatibility"))))
 
             if "OCLP Compatibility" in gpu_props:
-                print("{}- OCLP Compatibility: {}".format(" "*6, self.show_macos_compatibility(gpu_props.get("OCLP Compatibility"))))
-
+                print("{}- OCLP Compatibility{}: {}".format(" "*6, " (requires developer mode)" if navi_requires_developer_mode else "", self.show_macos_compatibility(gpu_props.get("OCLP Compatibility"))))
             connected_monitors = []
             for monitor_name, monitor_info in self.hardware_report.get("Monitor", {}).items(): 
                 if monitor_info.get("Connected GPU") == gpu_name:

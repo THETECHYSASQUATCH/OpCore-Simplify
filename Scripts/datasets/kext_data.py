@@ -153,6 +153,18 @@ kexts = [
         }
     ),
     KextInfo(
+        name = "AirPortAtheros40-Tahoe",
+        description = "Enable Atheros Wi-Fi adapters on macOS Tahoe",
+        category = "Wi-Fi",
+        min_darwin_version = "25.0.0",
+        allow_force_load = False,
+        requires_kexts = ["IO80211ElCap"],
+        download_info = {
+            "id": 716307761,
+            "url": "https://raw.githubusercontent.com/dortania/OpenCore-Legacy-Patcher/main/payloads/Kexts/Wifi/AirPortAtheros40-Tahoe-v1.0.0.zip"
+        }
+    ),
+    KextInfo(
         name = "AirportBrcmFixup", 
         description = "Patches required for non-native Broadcom Wi-Fi cards",
         category = "Wi-Fi",
@@ -160,6 +172,18 @@ kexts = [
         github_repo = {
             "owner": "acidanthera",
             "repo": "AirportBrcmFixup"
+        }
+    ),
+    KextInfo(
+        name = "AirPortBrcmNIC-Tahoe",
+        description = "Enable Broadcom Wi-Fi adapters on macOS Tahoe",
+        category = "Wi-Fi",
+        min_darwin_version = "25.0.0",
+        allow_force_load = False,
+        requires_kexts = ["IO80211FamilyLegacy"],
+        download_info = {
+            "id": 590725096,
+            "url": "https://raw.githubusercontent.com/dortania/OpenCore-Legacy-Patcher/main/payloads/Kexts/Wifi/AirPortBrcmNIC-Tahoe-v1.0.0.zip"
         }
     ),
     KextInfo(
@@ -177,7 +201,6 @@ kexts = [
         description = "Enable legacy Qualcomm Atheros Wireless cards",
         category = "Wi-Fi",
         min_darwin_version = "18.0.0",
-        max_darwin_version = "24.99.99",
         requires_kexts = ["IO80211ElCap"],
         download_info = {
             "id": 348147192, 
@@ -199,7 +222,6 @@ kexts = [
         description = "Enable legacy Qualcomm Atheros Wireless cards",
         category = "Wi-Fi",
         min_darwin_version = "18.0.0",
-        max_darwin_version = "24.99.99",
         requires_kexts = ["corecaptureElCap"],
         download_info = {
             "id": 128321732, 

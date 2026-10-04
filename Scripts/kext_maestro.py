@@ -258,6 +258,8 @@ class KextMaestro:
 
             if device_id in pci_data.BroadcomWiFiIDs and self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("23.0.0"):
                 selected_kexts.append("IOSkywalkFamily")
+                if self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("25.0.0"):
+                    selected_kexts.append("AirPortBrcmNIC-Tahoe")
 
             if device_id in pci_data.BroadcomWiFiIDs[:15]:
                 selected_kexts.append("AirportBrcmFixup")
@@ -308,8 +310,12 @@ class KextMaestro:
                     
                     if self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("24.0.0"):
                         selected_kexts.append("IOSkywalkFamily")
+                        if self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("25.0.0"):
+                            selected_kexts.append("AirPortBrcmNIC-Tahoe")
             elif device_id in pci_data.AtherosWiFiIDs[:8]:
                 selected_kexts.append("corecaptureElCap")
+                if self.utils.parse_darwin_version(macos_version) >= self.utils.parse_darwin_version("25.0.0"):
+                    selected_kexts.append("AirPortAtheros40-Tahoe")
                 if self.utils.parse_darwin_version(macos_version) > self.utils.parse_darwin_version("20.99.99"):
                     selected_kexts.append("AMFIPass")
             elif device_id in pci_data.rtw88WiFiIDs:
@@ -466,10 +472,10 @@ class KextMaestro:
                                 destination_kext_path = os.path.join(kexts_directory, os.path.basename(kext_path))
                                 break
                         else:
-                            main_kext = kext_path.split("/")[0]
+                            main_kext = kext_path.replace("\\", "/").split("/")[0]
                             main_kext_index = kext_data.kext_index_by_name.get(main_kext)
                             if not main_kext_index or self.kexts[main_kext_index].checked:
-                                if os.path.splitext(os.path.basename(kext_path))[0] in kext_name:
+                                if os.path.splitext(os.path.basename(kext_path))[0] == kext_name:
                                     source_kext_path = os.path.join(self.ock_files_dir, kext_path)
                                     destination_kext_path = os.path.join(kexts_directory, os.path.basename(kext_path))
                     
@@ -601,6 +607,14 @@ class KextMaestro:
                     bundle["MaxKernel"] = bundle["MaxKernel"] if self.utils.parse_darwin_version(bundle["MaxKernel"]) < self.utils.parse_darwin_version(bundle_dict[dep_identifier].get("MaxKernel", "99.99.99")) else bundle_dict[dep_identifier]["MaxKernel"]
                     bundle["MinKernel"] = bundle["MinKernel"] if self.utils.parse_darwin_version(bundle["MinKernel"]) > self.utils.parse_darwin_version(bundle_dict[dep_identifier].get("MinKernel", "0.0.0")) else bundle_dict[dep_identifier]["MinKernel"]
 
+            wifi_identifier = bundle.get("BundleIdentifier")
+            if wifi_identifier in ("com.apple.driver.AirPort.BrcmNIC", "com.apple.driver.AirPort.Atheros40"):
+                if bundle["BundlePath"].endswith("-Tahoe.kext"):
+                    bundle["MinKernel"] = "25.0.0"
+                else:
+                    bundle["MaxKernel"] = "24.99.99"
+                    bundle["MinKernel"] = "23.0.0" if wifi_identifier == "com.apple.driver.AirPort.BrcmNIC" else "18.0.0"
+
             if kext_name == "AirPortBrcm4360_Injector":
                 bundle["MaxKernel"] = "19.99.99"
             elif kext_name == "AirportItlwm":
@@ -609,10 +623,13 @@ class KextMaestro:
 
             visited.add((bundle.get("BundlePath"), bundle.get("BundleIdentifier")))
 
-            if bundle.get("BundleIdentifier") in seen_identifier:
+            identifier = bundle.get("BundleIdentifier")
+            if identifier in ("com.apple.driver.AirPort.BrcmNIC", "com.apple.driver.AirPort.Atheros40"):
+                identifier = (identifier, bundle["MinKernel"], bundle["MaxKernel"])
+            if identifier in seen_identifier:
                 bundle["Enabled"] = False
             else:
-                seen_identifier.add(bundle.get("BundleIdentifier"))
+                seen_identifier.add(identifier)
 
             sorted_bundles.append(bundle)
 
